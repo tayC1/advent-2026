@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Advent — Light is on its way</title>
+<meta name="description" content="Four weeks of waiting, reading, and lighting one more candle together.">
+<meta name="theme-color" content="#2d0009">
+
+<!-- tiny flame favicon, inline so there's no extra file to deploy -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232d0009'/%3E%3Cpath d='M32 9c8 10 13 18 13 27a13 13 0 0 1-26 0c0-9 5-17 13-27z' fill='%23f2ae1d'/%3E%3Cpath d='M32 27c4 6 6 11 6 15a6 6 0 0 1-12 0c0-4 2-9 6-15z' fill='%23dcdccb'/%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --oxblood-deep: #2d0009;
+    --oxblood: #4a0b15;
+    --berry: #75131f;
+    --gold: #f3b01c;
+    --gold-soft: #f7c85f;
+    --flame-core: #dcdccb;
+    --holly: #11703a;
+    --shelf-top: #5fa0d8;
+    --shelf-front: #15355a;
+    --night: #0d1220;
+    --text-soft: #ecd3c4;
+
+    --serif: "Fraunces", "Iowan Old Style", Georgia, serif;
+    --sans: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html { background: var(--night); }
+  body {
+    margin: 0;
+    background: var(--night);
+    color: var(--text-soft);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---------- the sky (everything above the shelf) ---------- */
+  .sky {
+    position: relative;
+    isolation: isolate;
+    padding: clamp(36px, 7vh, 88px) 20px 0;
+    text-align: center;
+    background:
+      radial-gradient(120% 70% at 50% 100%, #5b101a 0%, rgba(91,16,26,0) 70%),
+      linear-gradient(#3a0512 0%, #4d0d17 60%, #55101a 100%);
+  }
+  /* paper grain over the sky, same feel as the illustration */
+  .sky::before {
+    content: "";
+    position: absolute; inset: 0; z-index: -1;
+    opacity: .5;
+    mix-blend-mode: soft-light;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.55' numOctaves='3' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 .75 0 0 0 0 .7 0 0 0 .9 -.25'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  h1 {
+    margin: 0;
+    font-family: var(--serif);
+    font-weight: 600;
+    font-variation-settings: "opsz" 144;
+    font-size: clamp(2.5rem, 7vw, 5rem);
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+    color: var(--gold-soft);
+    text-wrap: balance;
+  }
+  .lede {
+    margin: clamp(12px, 2vh, 20px) auto 0;
+    max-width: 34ch;
+    font-size: clamp(1rem, 2.2vw, 1.2rem);
+    line-height: 1.5;
+    color: var(--text-soft);
+    text-wrap: balance;
+  }
+
+  /* ---------- the scene: static art + glow + live (animated) layer ---------- */
+  .scene {
+    position: relative;
+    width: min(100%, 860px);
+    margin: clamp(20px, 4vh, 48px) auto 0;
+    aspect-ratio: 1580 / 1080;
+  }
+  .scene svg {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    display: block;
+    overflow: hidden;
+  }
+
+  /* warm light thrown by the flame; opacity-only animation = cheap */
+  .glow {
+    position: absolute;
+    left: 49.7%; top: 38%;
+    width: 52%; aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,190,70,.30) 0%, rgba(255,150,50,.10) 38%, rgba(255,120,40,0) 70%);
+    mix-blend-mode: screen;
+    pointer-events: none;
+    animation: glow 3.3s ease-in-out infinite;
+  }
+
+  /* ---------- flame flicker ---------- */
+  .flame, .flame-core {
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+    will-change: transform;
+  }
+  .flame      { animation: flicker 2.9s ease-in-out infinite; }
+  .flame-core { animation: flicker-core 2.1s ease-in-out -0.7s infinite; }
+
+  @keyframes flicker {
+    0%   { transform: scale(1, 1)       skewX(0deg)   rotate(0deg); }
+    8%   { transform: scale(.96, 1.05)  skewX(-2deg)  rotate(-.5deg); }
+    16%  { transform: scale(1.03, .94)  skewX(1.5deg) rotate(.5deg); }
+    27%  { transform: scale(.94, 1.09)  skewX(-3deg)  rotate(-1deg); }
+    38%  { transform: scale(1.02, .97)  skewX(2deg)   rotate(.5deg); }
+    52%  { transform: scale(.97, 1.11)  skewX(-1deg)  rotate(0deg); }
+    61%  { transform: scale(1.05, .92)  skewX(3deg)   rotate(1.5deg); }
+    74%  { transform: scale(.95, 1.04)  skewX(-2.5deg) rotate(-1deg); }
+    86%  { transform: scale(1.01, 1.07) skewX(1deg)   rotate(.5deg); }
+    100% { transform: scale(1, 1)       skewX(0deg)   rotate(0deg); }
+  }
+  @keyframes flicker-core {
+    0%   { transform: scale(1, 1)      skewX(0deg); }
+    12%  { transform: scale(.9, 1.1)   skewX(2deg); }
+    25%  { transform: scale(1.08, .9)  skewX(-2deg); }
+    41%  { transform: scale(.93, 1.14) skewX(3deg); }
+    57%  { transform: scale(1.06, .94) skewX(-3deg); }
+    73%  { transform: scale(.92, 1.08) skewX(1deg); }
+    88%  { transform: scale(1.04, .97) skewX(-1deg); }
+    100% { transform: scale(1, 1)      skewX(0deg); }
+  }
+  @keyframes glow {
+    0%, 100% { opacity: .85; transform: translate(-50%, -50%) scale(1); }
+    18%      { opacity: .65; transform: translate(-50%, -50%) scale(.96); }
+    35%      { opacity: 1;   transform: translate(-50%, -50%) scale(1.04); }
+    58%      { opacity: .7;  transform: translate(-50%, -50%) scale(.98); }
+    80%      { opacity: .95; transform: translate(-50%, -50%) scale(1.03); }
+  }
+
+  /* ---------- sparks dance ---------- */
+  .spark {
+    transform-box: fill-box;
+    transform-origin: 50% 50%;
+    animation: dance-a var(--d, 5s) ease-in-out var(--delay, 0s) infinite;
+    will-change: transform, opacity;
+  }
+  .spark.b { animation-name: dance-b; }
+
+  @keyframes dance-a {
+    0%, 100% { transform: translate(0, 0)      rotate(0deg)   scale(1);    opacity: 1; }
+    25%      { transform: translate(7px, -16px) rotate(25deg)  scale(1.25); opacity: 1; }
+    50%      { transform: translate(-5px, -5px) rotate(70deg)  scale(.5);   opacity: .5; }
+    75%      { transform: translate(9px, 9px)   rotate(110deg) scale(1.1);  opacity: .9; }
+  }
+  @keyframes dance-b {
+    0%, 100% { transform: translate(0, 0)       rotate(0deg)    scale(1);    opacity: 1; }
+    30%      { transform: translate(-8px, 12px)  rotate(-30deg)  scale(.55);  opacity: .55; }
+    55%      { transform: translate(6px, -12px)  rotate(-75deg)  scale(1.3);  opacity: 1; }
+    80%      { transform: translate(-6px, -4px)  rotate(-110deg) scale(.9);   opacity: .85; }
+  }
+
+  /* ---------- the shelf (full-bleed, lines up with the art's baseline) ---------- */
+  .shelf-top   { height: clamp(28px, 4.5vw, 52px); background: linear-gradient(90deg, #3f7fb8, var(--shelf-top) 12%, #5b9bd2 60%, #4a8ac4); }
+  .shelf-front { height: clamp(64px, 8vw, 112px);  background: linear-gradient(var(--shelf-front), #123055); border-top: 2px solid rgba(8,20,40,.45); }
+
+  /* ---------- below the shelf ---------- */
+  .ground {
+    padding: clamp(32px, 6vh, 64px) 20px calc(40px + env(safe-area-inset-bottom, 0px));
+    text-align: center;
+    background: var(--night);
+  }
+  .cta {
+    display: inline-block;
+    padding: 14px 28px;
+    border-radius: 999px;
+    background: var(--gold);
+    color: #2a0a05;
+    font: 600 1rem/1 var(--sans);
+    text-decoration: none;
+    transition: background .15s ease, transform .15s ease;
+  }
+  .cta:hover { background: var(--gold-soft); transform: translateY(-1px); }
+  .cta:focus-visible { outline: 3px solid var(--gold-soft); outline-offset: 4px; }
+  .fine {
+    margin: 28px 0 0;
+    font-size: .85rem;
+    color: #8892a8;
+  }
+
+  /* nobody has to watch it flicker if they'd rather not */
+  @media (prefers-reduced-motion: reduce) {
+    .flame, .flame-core, .spark, .glow { animation: none; }
+  }
+</style>
+</head>
+
+<body>
+<main>
+  <section class="sky">
+    <!-- ✏️ EDIT THE COPY HERE -->
+    <h1>Light is on its way.</h1>
+    <p class="lede">Four weeks of waiting, reading, and lighting one more candle together.</p>
+
+    <div class="scene" role="img" aria-label="A lit candle framed by an arch of red circles, with two holly plants and golden sparks floating around the flame.">
+
+      <!-- LAYER 1: static artwork -->
+      <svg viewBox="170 420 1580 1080" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+        <defs>
+          <!-- grain: light speckle for gold things, dark speckle for everything else -->
+          <filter id="grainGold" filterUnits="userSpaceOnUse" x="150" y="400" width="1620" height="1120">
+            <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="t"/>
+            <feColorMatrix in="t" type="matrix" values="0 0 0 0 1  0 0 0 0 .86  0 0 0 0 .45  2.2 0 0 0 -1.15" result="s"/>
+            <feComposite in="s" in2="SourceAlpha" operator="in" result="sIn"/>
+            <feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="sIn"/></feMerge>
+          </filter>
+          <filter id="grainDark" filterUnits="userSpaceOnUse" x="150" y="400" width="1620" height="1120">
+            <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" seed="3" result="t"/>
+            <feColorMatrix in="t" type="matrix" values="0 0 0 0 .12  0 0 0 0 0  0 0 0 0 .03  2.2 0 0 0 -.95" result="s"/>
+            <feComposite in="s" in2="SourceAlpha" operator="in" result="sIn"/>
+            <feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="sIn"/></feMerge>
+          </filter>
+
+          <linearGradient id="wax" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#f4c04e"/>
+            <stop offset="1" stop-color="#c58028"/>
+          </linearGradient>
+
+          <!-- circles, defined once so overlaps can be re-cut -->
+          <clipPath id="clipL"><circle cx="710" cy="880" r="168"/></clipPath>
+          <clipPath id="clipR"><circle cx="1198" cy="880" r="168"/></clipPath>
+          <clipPath id="clipPL"><circle cx="550" cy="1085" r="172"/></clipPath>
+          <clipPath id="clipPR"><circle cx="1361" cy="1085" r="172"/></clipPath>
+          <clipPath id="clipB"><circle cx="957" cy="1240" r="262"/></clipPath>
+
+          <!-- one plant, mirrored for the other side -->
+          <g id="plant">
+            <!-- top leaves -->
+            <path d="M378 1088 C470 1095 530 1150 543 1230 C440 1240 385 1170 378 1088Z" fill="#116f3a"/>
+            <path d="M722 1088 C630 1095 560 1150 543 1230 C650 1250 715 1170 722 1088Z" fill="#126a38"/>
+            <path d="M722 1088 C660 1100 600 1150 555 1250 L690 1130Z" fill="#0f5a2e" opacity=".45"/>
+            <!-- stem -->
+            <rect x="531" y="1230" width="24" height="268" fill="#11703a"/>
+            <!-- small inner leaves -->
+            <path d="M419 1287 C480 1290 525 1320 532 1370 L532 1430 C470 1420 425 1360 419 1287Z" fill="#0f5a2e"/>
+            <path d="M669 1287 C610 1290 565 1320 555 1370 L555 1430 C615 1420 662 1360 669 1287Z" fill="#0f5a2e"/>
+            <!-- big lower leaves -->
+            <path d="M380 1327 C480 1330 540 1400 546 1497 C450 1497 385 1420 380 1327Z" fill="#0b3a1d"/>
+            <path d="M711 1327 C620 1330 560 1400 546 1497 C640 1497 705 1420 711 1327Z" fill="#11703a"/>
+            <!-- berries -->
+            <circle cx="541" cy="1040" r="20" fill="#f3b01c"/>
+            <circle cx="513" cy="1089" r="20" fill="#e7a421"/>
+            <circle cx="571" cy="1089" r="20" fill="#e7a421"/>
+          </g>
+        </defs>
+
+        <!-- big dark arch -->
+        <g filter="url(#grainDark)">
+          <circle cx="955" cy="1205" r="685" fill="#2e0008"/>
+        </g>
+
+        <!-- red circles -->
+        <g filter="url(#grainDark)">
+          <circle cx="955"  cy="810"  r="165" fill="#75131f"/>
+          <circle cx="710"  cy="880"  r="168" fill="#75131f"/>
+          <circle cx="1198" cy="880"  r="168" fill="#75131f"/>
+          <circle cx="550"  cy="1085" r="172" fill="#75131f"/>
+          <circle cx="1361" cy="1085" r="172" fill="#75131f"/>
+          <circle cx="957"  cy="1240" r="262" fill="#76131f"/>
+        </g>
+        <!-- lighter overlap lenses -->
+        <g fill="#9a251f">
+          <circle cx="955"  cy="810"  r="165" clip-path="url(#clipL)"/>
+          <circle cx="955"  cy="810"  r="165" clip-path="url(#clipR)"/>
+          <circle cx="710"  cy="880"  r="168" clip-path="url(#clipPL)"/>
+          <circle cx="1198" cy="880"  r="168" clip-path="url(#clipPR)"/>
+        </g>
+
+        <!-- candle holder: navy base + gold rim -->
+        <g clip-path="url(#clipB)">
+          <rect x="680" y="1402" width="560" height="110" fill="#101a30"/>
+        </g>
+        <rect x="748" y="1390" width="417" height="13" fill="#f3b01c"/>
+
+        <!-- candle -->
+        <g filter="url(#grainGold)">
+          <rect x="877" y="940" width="156" height="452" fill="url(#wax)"/>
+          <path d="M850 932 L878 888 H1034 L1060 935 Q1055 962 1047 970 H877 Q862 960 850 932Z" fill="#f4be4e"/>
+          <rect x="866" y="975" width="36" height="106" rx="18" fill="#f5c453"/>
+          <rect x="920" y="938" width="48" height="70" rx="24" fill="#f5c453"/>
+          <rect x="968" y="990" width="24" height="156" rx="12" fill="#f5c453"/>
+          <rect x="995" y="938" width="40" height="64" rx="20" fill="#f5c453"/>
+          <rect x="880" y="886" width="154" height="9" fill="#e9e6cf"/>
+        </g>
+
+        <!-- plants -->
+        <g filter="url(#grainDark)">
+          <use href="#plant"/>
+          <use href="#plant" transform="translate(1911 0) scale(-1 1)"/>
+        </g>
+      </svg>
+
+      <!-- LAYER 2: light from the flame -->
+      <div class="glow" aria-hidden="true"></div>
+
+      <!-- LAYER 3: the parts that move (kept separate so the static art never repaints) -->
+      <svg viewBox="170 420 1580 1080" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+        <!-- flame -->
+        <g class="flame">
+          <path d="M955 672 C985 715 1005 760 1005 810 C1005 855 985 886 955 886 C925 886 905 855 905 810 C905 760 925 715 955 672Z" fill="#f2ae1d"/>
+          <path d="M955 672 C940 700 920 735 912 775 C930 745 950 725 975 722 C968 705 962 690 955 672Z" fill="#f7cc6a" opacity=".75"/>
+        </g>
+        <path class="flame-core" d="M955 750 C975 780 982 820 980 850 C978 875 968 886 955 886 C942 886 932 875 930 850 C928 820 935 780 955 750Z" fill="#dcdccb"/>
+
+        <!-- small outer sparks -->
+        <g transform="translate(955 468)"><path class="spark"   style="--d:4.6s;--delay:-.4s" fill="#f9c35a" d="M0,-26 Q4.4,-4.4 26,0 Q4.4,4.4 0,26 Q-4.4,4.4 -26,0 Q-4.4,-4.4 0,-26Z"/></g>
+        <g transform="translate(316 788)"><path class="spark b" style="--d:5.4s;--delay:-1.9s" fill="#f9c35a" d="M0,-26 Q4.4,-4.4 26,0 Q4.4,4.4 0,26 Q-4.4,4.4 -26,0 Q-4.4,-4.4 0,-26Z"/></g>
+        <g transform="translate(1583 762)"><path class="spark" style="--d:6.1s;--delay:-3.2s" fill="#f9c35a" d="M0,-28 Q4.8,-4.8 28,0 Q4.8,4.8 0,28 Q-4.8,4.8 -28,0 Q-4.8,-4.8 0,-28Z"/></g>
+        <g transform="translate(213 1205)"><path class="spark" style="--d:5.1s;--delay:-2.4s" fill="#fbc860" d="M0,-29 Q4.9,-4.9 29,0 Q4.9,4.9 0,29 Q-4.9,4.9 -29,0 Q-4.9,-4.9 0,-29Z"/></g>
+        <g transform="translate(1705 1212)"><path class="spark b" style="--d:4.2s;--delay:-.9s" fill="#f9c35a" d="M0,-24 Q4.1,-4.1 24,0 Q4.1,4.1 0,24 Q-4.1,4.1 -24,0 Q-4.1,-4.1 0,-24Z"/></g>
+
+        <!-- big inner sparks -->
+        <g transform="translate(706 882)"><path class="spark b" style="--d:3.8s;--delay:-1.1s" fill="#f6b926" d="M0,-50 Q8.5,-8.5 50,0 Q8.5,8.5 0,50 Q-8.5,8.5 -50,0 Q-8.5,-8.5 0,-50Z"/></g>
+        <g transform="translate(1200 882)"><path class="spark" style="--d:4.4s;--delay:-2.7s" fill="#f6b926" d="M0,-50 Q8.5,-8.5 50,0 Q8.5,8.5 0,50 Q-8.5,8.5 -50,0 Q-8.5,-8.5 0,-50Z"/></g>
+      </svg>
+    </div>
+  </section>
+
+  <div class="shelf-top"></div>
+  <div class="shelf-front"></div>
+
+  <section class="ground">
+    <!-- ✏️ EDIT THE BUTTON LABEL + LINK -->
+    <a class="cta" href="#">See the first week</a>
+    <p class="fine">&copy; 2026</p>
+  </section>
+</main>
+</body>
+</html>
