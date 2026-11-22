@@ -61,19 +61,27 @@
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.55' numOctaves='3' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 .75 0 0 0 0 .7 0 0 0 .9 -.25'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
-  h1 {
-    margin: 0;
+  /* the real <h1> stays in the document for screen readers + SEO;
+     what you see is the arched copy drawn inside the artwork */
+  .visually-hidden {
+    position: absolute !important;
+    width: 1px; height: 1px;
+    margin: -1px; padding: 0; border: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .arc-title {
     font-family: var(--serif);
     font-weight: 600;
     font-variation-settings: "opsz" 144;
-    font-size: clamp(2.5rem, 7vw, 5rem);
-    line-height: 1.02;
-    letter-spacing: -0.02em;
-    color: var(--gold-soft);
-    text-wrap: balance;
+    font-size: 76px;           /* in artwork units, scales with the scene */
+    letter-spacing: 0.02em;
+    fill: var(--gold-soft);
   }
   .lede {
-    margin: clamp(12px, 2vh, 20px) auto 0;
+    margin: 0 auto clamp(24px, 4vh, 36px);
     max-width: 34ch;
     font-size: clamp(1rem, 2.2vw, 1.2rem);
     line-height: 1.5;
@@ -207,9 +215,8 @@
 <body>
 <main>
   <section class="sky">
-    <!-- ✏️ EDIT THE COPY HERE -->
-    <h1>Together in Harmony - Advent 2026.</h1>
-    <p class="lede">The 4 weeks of advent, leading up to the long expected coming of our savior.</p>
+    <!-- ✏️ EDIT THE TITLE HERE (and in the arched <textPath> below) -->
+    <h1 class="visually-hidden">Together in Harmony - Advent 2026.</h1>
 
     <div class="scene" role="img" aria-label="A lit candle framed by an arch of red circles, with two holly plants and golden sparks floating around the flame.">
 
@@ -240,6 +247,9 @@
           <clipPath id="clipR"><circle cx="1198" cy="880" r="168"/></clipPath>
           <clipPath id="clipPL"><circle cx="550" cy="1085" r="172"/></clipPath>
           <clipPath id="clipPR"><circle cx="1361" cy="1085" r="172"/></clipPath>
+          <!-- arc the title rides on: same center as the dark arch, just inside its edge -->
+          <path id="titleArc" d="M377.1 994.7 A615 615 0 0 1 1532.9 994.7" fill="none"/>
+
           <clipPath id="clipB"><circle cx="957" cy="1240" r="262"/></clipPath>
 
           <!-- one plant, mirrored for the other side -->
@@ -267,6 +277,11 @@
         <g filter="url(#grainDark)">
           <circle cx="955" cy="1205" r="685" fill="#2e0008"/>
         </g>
+
+        <!-- arched title (✏️ keep in sync with the <h1> above) -->
+        <text class="arc-title" text-anchor="middle" filter="url(#grainGold)">
+          <textPath href="#titleArc" startOffset="50%">Together in Harmony - Advent 2026.</textPath>
+        </text>
 
         <!-- red circles -->
         <g filter="url(#grainDark)">
@@ -339,6 +354,8 @@
   <div class="shelf-front"></div>
 
   <section class="ground">
+    <!-- ✏️ EDIT THE COPY HERE -->
+    <p class="lede">The 4 weeks of advent, leading up to the long expected coming of our savior.</p>
     <!-- ✏️ EDIT THE BUTTON LABEL + LINK -->
     <a class="cta" href="#">Week One: Advent + Hopek</a>
   </section>
