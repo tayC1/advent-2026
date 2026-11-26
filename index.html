@@ -33,21 +33,39 @@
   }
 
   *, *::before, *::after { box-sizing: border-box; }
-  html { background: var(--night); }
+  html { background: #123055; }
   body {
     margin: 0;
-    background: var(--night);
+    background: #123055;
     color: var(--text-soft);
     font-family: var(--sans);
     -webkit-font-smoothing: antialiased;
+  }
+  /* one screen, no scrolling: the page is exactly the viewport tall.
+     the sky takes the space first (up to what the art needs), the table gets the rest */
+  main {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100svh;
   }
 
   /* ---------- the sky (everything above the shelf) ---------- */
   .sky {
     position: relative;
     isolation: isolate;
-    padding: clamp(36px, 7vh, 88px) 20px 0;
+    --sky-pad: clamp(12px, 4vh, 48px);
+    padding: var(--sky-pad) 0 0;
     text-align: center;
+    /* size container so the art can shrink to whatever height is available */
+    container-type: size;
+    flex: 1000000 1 0;
+    min-height: 0;
+    /* art height + top padding + a little extra headroom so tall phones don't end up bottom-heavy */
+    max-height: calc(min(100vw, 860px) * 1170 / 1580 + var(--sky-pad) + 12vh);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;   /* candle always sits on the table */
     background:
       radial-gradient(120% 70% at 50% 100%, #5b101a 0%, rgba(91,16,26,0) 70%),
       linear-gradient(#3a0512 0%, #4d0d17 60%, #55101a 100%);
@@ -76,12 +94,12 @@
     font-family: var(--serif);
     font-weight: 600;
     font-variation-settings: "opsz" 144;
-    font-size: 76px;           /* in artwork units, scales with the scene */
+    font-size: 92px;           /* in artwork units, scales with the scene */
     letter-spacing: 0.02em;
     fill: var(--gold-soft);
   }
   .lede {
-    margin: 0 auto clamp(24px, 4vh, 36px);
+    margin: 0 auto clamp(14px, 3vh, 28px);
     max-width: 34ch;
     font-size: clamp(1rem, 2.2vw, 1.2rem);
     line-height: 1.5;
@@ -93,8 +111,10 @@
   .scene {
     position: relative;
     width: min(100%, 860px);
-    margin: clamp(20px, 4vh, 48px) auto 0;
-    aspect-ratio: 1580 / 1080;
+    width: min(100%, 860px, 100cqh * 1580 / 1170);
+    margin: 0 auto;
+    flex: none;
+    aspect-ratio: 1580 / 1170;
   }
   .scene svg {
     position: absolute; inset: 0;
@@ -106,7 +126,7 @@
   /* warm light thrown by the flame; opacity-only animation = cheap */
   .glow {
     position: absolute;
-    left: 49.7%; top: 38%;
+    left: 49.7%; top: 42.8%;
     width: 52%; aspect-ratio: 1;
     transform: translate(-50%, -50%);
     border-radius: 50%;
@@ -178,14 +198,18 @@
   }
 
   /* ---------- the shelf (full-bleed, lines up with the art's baseline) ---------- */
-  .shelf-top   { height: clamp(28px, 4.5vw, 52px); background: linear-gradient(90deg, #3f7fb8, var(--shelf-top) 12%, #5b9bd2 60%, #4a8ac4); }
-  .shelf-front { height: clamp(64px, 8vw, 112px);  background: linear-gradient(var(--shelf-front), #123055); border-top: 2px solid rgba(8,20,40,.45); }
-
-  /* ---------- below the shelf ---------- */
-  .ground {
-    padding: clamp(32px, 6vh, 64px) 20px calc(40px + env(safe-area-inset-bottom, 0px));
+  .shelf-top   { flex: none; height: clamp(28px, 4.5vw, 52px); background: linear-gradient(90deg, #3f7fb8, var(--shelf-top) 12%, #5b9bd2 60%, #4a8ac4); }
+  /* the front of the table holds the supporting copy + button */
+  .shelf-front {
+    flex: 1 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(16px, 4vh, 40px) 20px calc(clamp(16px, 4vh, 40px) + env(safe-area-inset-bottom, 0px));
     text-align: center;
-    background: var(--night);
+    background: linear-gradient(var(--shelf-front), #123055 160px);
+    border-top: 2px solid rgba(8,20,40,.45);
   }
   .cta {
     display: inline-block;
@@ -199,11 +223,6 @@
   }
   .cta:hover { background: var(--gold-soft); transform: translateY(-1px); }
   .cta:focus-visible { outline: 3px solid var(--gold-soft); outline-offset: 4px; }
-  .fine {
-    margin: 28px 0 0;
-    font-size: .85rem;
-    color: #8892a8;
-  }
 
   /* nobody has to watch it flicker if they'd rather not */
   @media (prefers-reduced-motion: reduce) {
@@ -221,16 +240,16 @@
     <div class="scene" role="img" aria-label="A lit candle framed by an arch of red circles, with two holly plants and golden sparks floating around the flame.">
 
       <!-- LAYER 1: static artwork -->
-      <svg viewBox="170 420 1580 1080" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+      <svg viewBox="170 330 1580 1170" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
         <defs>
           <!-- grain: light speckle for gold things, dark speckle for everything else -->
-          <filter id="grainGold" filterUnits="userSpaceOnUse" x="150" y="400" width="1620" height="1120">
+          <filter id="grainGold" filterUnits="userSpaceOnUse" x="150" y="310" width="1620" height="1210">
             <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="t"/>
             <feColorMatrix in="t" type="matrix" values="0 0 0 0 1  0 0 0 0 .86  0 0 0 0 .45  2.2 0 0 0 -1.15" result="s"/>
             <feComposite in="s" in2="SourceAlpha" operator="in" result="sIn"/>
             <feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="sIn"/></feMerge>
           </filter>
-          <filter id="grainDark" filterUnits="userSpaceOnUse" x="150" y="400" width="1620" height="1120">
+          <filter id="grainDark" filterUnits="userSpaceOnUse" x="150" y="310" width="1620" height="1210">
             <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" seed="3" result="t"/>
             <feColorMatrix in="t" type="matrix" values="0 0 0 0 .12  0 0 0 0 0  0 0 0 0 .03  2.2 0 0 0 -.95" result="s"/>
             <feComposite in="s" in2="SourceAlpha" operator="in" result="sIn"/>
@@ -247,8 +266,8 @@
           <clipPath id="clipR"><circle cx="1198" cy="880" r="168"/></clipPath>
           <clipPath id="clipPL"><circle cx="550" cy="1085" r="172"/></clipPath>
           <clipPath id="clipPR"><circle cx="1361" cy="1085" r="172"/></clipPath>
-          <!-- arc the title rides on: same center as the dark arch, just inside its edge -->
-          <path id="titleArc" d="M377.1 994.7 A615 615 0 0 1 1532.9 994.7" fill="none"/>
+          <!-- arc the title rides on: same center as the dark arch, just outside its edge -->
+          <path id="titleArc" d="M253.8 1081.4 A712 712 0 0 1 1656.2 1081.4" fill="none"/>
 
           <clipPath id="clipB"><circle cx="957" cy="1240" r="262"/></clipPath>
 
@@ -328,7 +347,7 @@
       <div class="glow" aria-hidden="true"></div>
 
       <!-- LAYER 3: the parts that move (kept separate so the static art never repaints) -->
-      <svg viewBox="170 420 1580 1080" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+      <svg viewBox="170 330 1580 1170" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
         <!-- flame -->
         <g class="flame">
           <path d="M955 672 C985 715 1005 760 1005 810 C1005 855 985 886 955 886 C925 886 905 855 905 810 C905 760 925 715 955 672Z" fill="#f2ae1d"/>
@@ -337,9 +356,9 @@
         <path class="flame-core" d="M955 750 C975 780 982 820 980 850 C978 875 968 886 955 886 C942 886 932 875 930 850 C928 820 935 780 955 750Z" fill="#dcdccb"/>
 
         <!-- small outer sparks -->
-        <g transform="translate(955 468)"><path class="spark"   style="--d:4.6s;--delay:-.4s" fill="#f9c35a" d="M0,-26 Q4.4,-4.4 26,0 Q4.4,4.4 0,26 Q-4.4,4.4 -26,0 Q-4.4,-4.4 0,-26Z"/></g>
-        <g transform="translate(316 788)"><path class="spark b" style="--d:5.4s;--delay:-1.9s" fill="#f9c35a" d="M0,-26 Q4.4,-4.4 26,0 Q4.4,4.4 0,26 Q-4.4,4.4 -26,0 Q-4.4,-4.4 0,-26Z"/></g>
-        <g transform="translate(1583 762)"><path class="spark" style="--d:6.1s;--delay:-3.2s" fill="#f9c35a" d="M0,-28 Q4.8,-4.8 28,0 Q4.8,4.8 0,28 Q-4.8,4.8 -28,0 Q-4.8,-4.8 0,-28Z"/></g>
+        <g transform="translate(955 368)"><path class="spark"   style="--d:4.6s;--delay:-.4s" fill="#f9c35a" d="M0,-26 Q4.4,-4.4 26,0 Q4.4,4.4 0,26 Q-4.4,4.4 -26,0 Q-4.4,-4.4 0,-26Z"/></g>
+        <g transform="translate(232 640)"><path class="spark b" style="--d:5.4s;--delay:-1.9s" fill="#f9c35a" d="M0,-26 Q4.4,-4.4 26,0 Q4.4,4.4 0,26 Q-4.4,4.4 -26,0 Q-4.4,-4.4 0,-26Z"/></g>
+        <g transform="translate(1680 650)"><path class="spark" style="--d:6.1s;--delay:-3.2s" fill="#f9c35a" d="M0,-28 Q4.8,-4.8 28,0 Q4.8,4.8 0,28 Q-4.8,4.8 -28,0 Q-4.8,-4.8 0,-28Z"/></g>
         <g transform="translate(213 1205)"><path class="spark" style="--d:5.1s;--delay:-2.4s" fill="#fbc860" d="M0,-29 Q4.9,-4.9 29,0 Q4.9,4.9 0,29 Q-4.9,4.9 -29,0 Q-4.9,-4.9 0,-29Z"/></g>
         <g transform="translate(1705 1212)"><path class="spark b" style="--d:4.2s;--delay:-.9s" fill="#f9c35a" d="M0,-24 Q4.1,-4.1 24,0 Q4.1,4.1 0,24 Q-4.1,4.1 -24,0 Q-4.1,-4.1 0,-24Z"/></g>
 
@@ -351,9 +370,7 @@
   </section>
 
   <div class="shelf-top"></div>
-  <div class="shelf-front"></div>
-
-  <section class="ground">
+  <section class="shelf-front">
     <!-- ✏️ EDIT THE COPY HERE -->
     <p class="lede">The 4 weeks of advent, leading up to the long expected coming of our savior.</p>
     <!-- ✏️ EDIT THE BUTTON LABEL + LINK -->
